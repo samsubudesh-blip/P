@@ -13,13 +13,14 @@
 <header class="top"><div class="brand"><div class="logo">✳</div><div><h1>Моё меню</h1><p>Умное планирование питания</p></div></div><div class="topnote">Для семьи · 3–4 человека</div></header>
 <section class="hero"><div><h2>Меньше думать о готовке. Больше наслаждаться едой.</h2><p>Собери продукты, составь меню на неделю или месяц и получи понятные рецепты и список покупок.</p><button class="btn" onclick="showTab('inventory')">Добавить продукты →</button></div><div class="heroimg" role="img" aria-label="Свежие продукты для приготовления"></div></section>
 <nav class="tabs"><button class="tab active" data-tab="home" onclick="showTab('home')">Обзор</button><button class="tab" data-tab="inventory" onclick="showTab('inventory')">Продукты</button><button class="tab" data-tab="planner" onclick="showTab('planner')">Моё меню</button><button class="tab" data-tab="recipes" onclick="showTab('recipes')">Рецепты</button><button class="tab" data-tab="shopping" onclick="showTab('shopping')">Покупки</button></nav>
-<section id="home" class="view"><div class="sectionhead"><div><h2>Добро пожаловать!</h2><p class="sub">Всё для домашнего меню в одном месте.</p></div></div><div class="stats"><div class="stat"><b id="statProducts">0</b><span>продуктов в запасе</span></div><div class="stat"><b id="statMeals">0</b><span>блюд в плане</span></div><div class="stat"><b id="statShopping">0</b><span>покупок в списке</span></div></div><div class="panel"><h3>С чего начнём?</h3><p class="sub">Добавь продукты, которые уже есть дома. Можно указать количество и срок годности.</p><button class="btn" onclick="showTab('inventory')">Моя продуктовая корзина</button></div><div class="panel"><h3>Как это работает</h3><p>① Добавляешь продукты вручную или фотографируешь их.<br>② Приложение подбирает блюда по твоим запасам.<br>③ Получаешь меню, рецепты и список того, чего не хватает.</p><p class="sub">На этом этапе загрузка фото сохраняет снимок для просмотра, распознавание продуктов пока не подключено.</p></div></section>
+<section id="home" class="view"><div class="sectionhead"><div><h2>Добро пожаловать!</h2><p class="sub">Всё для домашнего меню в одном месте.</p></div></div><div class="stats"><div class="stat"><b id="statProducts">0</b><span>продуктов в запасе</span></div><div class="stat"><b id="statMeals">0</b><span>блюд в плане</span></div><div class="stat"><b id="statShopping">0</b><span>покупок в списке</span></div></div><div class="panel"><h3>С чего начнём?</h3><p class="sub">Добавь продукты, которые уже есть дома. Можно указать количество и срок годности.</p><button class="btn" onclick="showTab('inventory')">Моя продуктовая корзина</button></div><div class="panel"><h3>Как это работает</h3><p>① Добавляешь продукты вручную или фотографируешь их.<br>② Приложение подбирает блюда по твоим запасам.<br>③ Получаешь меню, рецепты и список того, чего не хватает.</p><p class="sub">На этом этапе загрузка фото сохраняет снимок для просмотра, распознавание продуктов пока не подключено.</p></div><div class="panel" id="cloudPanel"><h3>☁️ Синхронизация между устройствами</h3><p class="sub" id="cloudStatus">Облачное хранилище пока не подключено. Настрой Supabase, чтобы продукты и меню были доступны на других устройствах.</p><div class="formrow" style="margin-top:12px"><div class="field"><label>Supabase Project URL</label><input id="sbUrl" type="url" placeholder="https://xxxxx.supabase.co"></div><div class="field"><label>Supabase anon / publishable key</label><input id="sbKey" type="password" placeholder="Публичный ключ проекта"></div></div><div class="formrow" style="margin-top:10px"><div class="field"><label>Твой e-mail для входа на всех устройствах</label><input id="sbEmail" type="email" placeholder="name@example.com"></div><button class="btn" style="align-self:end" onclick="connectCloud()">Подключить / войти</button></div><p class="sub">После подключения на каждом устройстве используй тот же e-mail. Придёт ссылка для входа. Секретный service_role key сюда вводить нельзя.</p></div></section>
 <section id="inventory" class="view hidden"><div class="sectionhead"><div><h2>Мои продукты</h2><p class="sub">Укажи, что есть в холодильнике и шкафах.</p></div><button class="btn light small" onclick="document.getElementById('photoInput').click()">＋ Фото</button></div><div class="panel"><form id="productForm"><div class="formrow"><div class="field"><label>Название продукта</label><input id="pName" placeholder="Например, курица" required></div><div class="field"><label>Количество</label><input id="pQty" type="number" min="0.01" step="0.01" placeholder="1" required></div><div class="field"><label>Единица</label><select id="pUnit"><option>кг</option><option>г</option><option>л</option><option>мл</option><option>шт.</option><option>уп.</option></select></div><div class="field"><label>Годен до</label><input id="pExpiry" type="date"></div></div><div style="margin-top:12px"><button class="btn" type="submit">Добавить продукт</button></div></form><input id="photoInput" class="hidden" type="file" accept="image/*" capture="environment" onchange="previewPhoto(event)"><div id="photoPreview" class="hidden" style="margin-top:12px"></div></div><div id="inventoryList" class="inventory"></div><div id="inventoryEmpty" class="empty">Пока здесь пусто. Добавь первые продукты.</div></section>
 <section id="planner" class="view hidden"><div class="sectionhead"><div><h2>План питания</h2><p class="sub">Меню для семьи из 3–4 человек.</p></div></div><div class="panel"><div class="planbar"><div class="field"><label>Период</label><select id="planPeriod"><option value="7">7 дней</option><option value="30">30 дней</option></select></div><div class="field"><label>Порции</label><select id="servings"><option value="3">3 человека</option><option value="4" selected>4 человека</option></select></div><button class="btn" onclick="generatePlan()">Составить меню</button></div><p class="sub">Меню строится по рецептам каталога. Доступность продуктов будет отмечена отдельно, недостающее попадёт в список покупок.</p></div><div id="planList" class="days"><div class="empty">Нажми «Составить меню», чтобы создать план питания.</div></div></section>
 <section id="recipes" class="view hidden"><div class="sectionhead"><div><h2>Книга рецептов</h2><p class="sub">Подробные инструкции и фотографии блюд.</p></div></div><div class="recipes" id="recipeList"></div></section>
 <section id="shopping" class="view hidden"><div class="sectionhead"><div><h2>Список покупок</h2><p class="sub">Ингредиенты, которых не хватает для меню.</p></div><button class="btn light small" onclick="clearShopping()">Очистить</button></div><div class="panel"><div id="shoppingList"><div class="empty">Список появится после составления меню.</div></div></div></section>
-<div class="footer">Моё меню · версия 0.1 · данные сохраняются на этом устройстве</div></main>
+<div class="footer">Моё меню · версия 0.2 · локальное и облачное хранение</div></main>
 <div class="modal" id="recipeModal" onclick="if(event.target===this)closeRecipe()"><div class="modalbox" id="modalContent"></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const recipes=[
 {id:1,name:'Курица с картофелем в духовке',type:'Обед',time:55,kcal:420,photo:'https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=900&auto=format&fit=crop',desc:'Сочная курица с румяным картофелем и ароматными травами.',ingredients:[['Курица',0.8,'кг'],['Картофель',1,'кг'],['Лук',2,'шт.'],['Чеснок',3,'зуб.'],['Масло растительное',2,'ст. л.']],steps:['Разогрей духовку до 200 °C. Курицу обсуши, картофель нарежь крупными дольками.','Смешай масло, измельчённый чеснок, соль, перец и любимые травы.','Обмажь курицу и картофель смесью, добавь крупно нарезанный лук.','Выложи в форму. Запекай 40–50 минут до полной готовности курицы и золотистой корочки.']},
@@ -34,8 +35,57 @@ const recipes=[
 {id:10,name:'Гречка с грибами',type:'Ужин',time:25,kcal:320,photo:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&auto=format&fit=crop',desc:'Рассыпчатая гречка с ароматными грибами.',ingredients:[['Гречка',0.3,'кг'],['Шампиньоны',0.25,'кг'],['Лук',1,'шт.'],['Масло сливочное',0.03,'кг']],steps:['Промой гречку и отвари в подсоленной воде до готовности.','Нарежь грибы пластинками, лук мелко поруби.','Обжарь лук, добавь грибы и готовь до испарения жидкости.','Смешай с гречкой, добавь сливочное масло и прогрей 2 минуты.']}
 ];
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+let sbClient=null,sbUser=null,syncTimer=null,loadingCloud=false;
+const cloudConfig=()=>({url:localStorage.getItem('mm_sb_url')||'',key:localStorage.getItem('mm_sb_key')||''});
+function setCloudStatus(message){const el=document.getElementById('cloudStatus');if(el)el.textContent=message}
+function initCloud(){
+ const c=cloudConfig();
+ document.getElementById('sbUrl').value=c.url;
+ document.getElementById('sbKey').value=c.key;
+ document.getElementById('sbEmail').value=localStorage.getItem('mm_sb_email')||'';
+ if(!c.url||!c.key||!window.supabase){setCloudStatus('Облако не подключено. Введи URL и публичный ключ Supabase, затем e-mail.');return}
+ try{sbClient=window.supabase.createClient(c.url,c.key);sbClient.auth.getSession().then(({data})=>{if(data.session){sbUser=data.session.user;loadCloud()}else setCloudStatus('Настройки сохранены. Введи e-mail и нажми «Подключить / войти».')})}catch(e){setCloudStatus('Не удалось запустить Supabase: '+e.message)}
+}
+async function connectCloud(){
+ const url=document.getElementById('sbUrl').value.trim(),key=document.getElementById('sbKey').value.trim(),email=document.getElementById('sbEmail').value.trim();
+ if(!url||!key||!email){setCloudStatus('Заполни URL, публичный ключ и e-mail.');return}
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){setCloudStatus('Проверь URL проекта Supabase.');return}
+ localStorage.setItem('mm_sb_url',url);localStorage.setItem('mm_sb_key',key);localStorage.setItem('mm_sb_email',email);
+ if(!window.supabase){setCloudStatus('Библиотека Supabase не загрузилась. Проверь подключение к интернету.');return}
+ sbClient=window.supabase.createClient(url,key);
+ setCloudStatus('Отправляю ссылку для входа на '+email+'…');
+ const {error}=await sbClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin}});
+ if(error){setCloudStatus('Ошибка входа: '+error.message);return}
+ setCloudStatus('Письмо отправлено. Открой ссылку из письма на этом устройстве. На остальных устройствах войди с тем же e-mail.');
+ sbClient.auth.onAuthStateChange((event,session)=>{if(session?.user){sbUser=session.user;loadCloud()}});
+}
+async function loadCloud(){
+ if(!sbClient||!sbUser)return;
+ setCloudStatus('Проверяю облачные данные…');
+ const {data,error}=await sbClient.from('menu_user_data').select('payload').eq('user_id',sbUser.id).maybeSingle();
+ if(error){setCloudStatus('Ошибка чтения облака: '+error.message+' Проверь, что SQL-схема установлена.');return}
+ if(data?.payload){
+  loadingCloud=true;
+  products=Array.isArray(data.payload.products)?data.payload.products:[];
+  plan=Array.isArray(data.payload.plan)?data.payload.plan:[];
+  shopping=Array.isArray(data.payload.shopping)?data.payload.shopping:[];
+  localStorage.setItem('mm_products',JSON.stringify(products));localStorage.setItem('mm_plan',JSON.stringify(plan));localStorage.setItem('mm_shopping',JSON.stringify(shopping));
+  loadingCloud=false;renderAll();setCloudStatus('Синхронизация включена. Данные загружены из облака.');
+ }else{
+  await syncCloudNow();setCloudStatus('Синхронизация включена. Текущие данные сохранены в облаке.');
+ }
+}
+async function syncCloudNow(){
+ if(!sbClient||!sbUser||loadingCloud)return;
+ const payload={products,plan,shopping};
+ const {error}=await sbClient.from('menu_user_data').upsert({user_id:sbUser.id,payload,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+ if(error)setCloudStatus('Не удалось сохранить в облако: '+error.message);
+ else setCloudStatus('☁️ Синхронизировано · '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));
+}
+function scheduleCloudSync(){if(!sbClient||!sbUser||loadingCloud)return;clearTimeout(syncTimer);syncTimer=setTimeout(syncCloudNow,700)}
+
 let products=load('mm_products',[]),plan=load('mm_plan',[]),shopping=load('mm_shopping',[]);
-const save=()=>{localStorage.setItem('mm_products',JSON.stringify(products));localStorage.setItem('mm_plan',JSON.stringify(plan));localStorage.setItem('mm_shopping',JSON.stringify(shopping));renderAll()};
+const save=()=>{localStorage.setItem('mm_products',JSON.stringify(products));localStorage.setItem('mm_plan',JSON.stringify(plan));localStorage.setItem('mm_shopping',JSON.stringify(shopping));renderAll();scheduleCloudSync()};
 function showTab(t){document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));document.getElementById(t).classList.remove('hidden');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));window.scrollTo({top:0,behavior:'smooth'});if(t==='recipes')renderRecipes();if(t==='planner')renderPlan();if(t==='shopping')renderShopping()}
 function renderInventory(){const el=document.getElementById('inventoryList');el.innerHTML=products.map(p=>`<div class="product"><div><strong>${esc(p.name)}</strong><small>${p.qty} ${p.unit}${p.expiry?' · до '+new Date(p.expiry+'T00:00:00').toLocaleDateString('ru-RU'):''}</small></div><button class="btn light small" onclick="removeProduct(${p.id})">Удалить</button></div>`).join('');document.getElementById('inventoryEmpty').classList.toggle('hidden',products.length>0)}
 document.getElementById('productForm').addEventListener('submit',e=>{e.preventDefault();products.push({id:Date.now(),name:document.getElementById('pName').value.trim(),qty:+document.getElementById('pQty').value,unit:document.getElementById('pUnit').value,expiry:document.getElementById('pExpiry').value});e.target.reset();save()});
@@ -53,10 +103,10 @@ function renderRecipes(){document.getElementById('recipeList').innerHTML=recipes
 function openRecipe(id){const r=recipes.find(x=>x.id===id);document.getElementById('modalContent').innerHTML=`<button class="btn light small" onclick="closeRecipe()">Закрыть ✕</button><img src="${r.photo}" alt=""><h2>${r.name}</h2><p class="sub">${r.desc}</p><p><b>${r.time} минут</b> · примерно ${r.kcal} ккал на порцию</p><h3>Ингредиенты на 4 порции</h3><ul>${r.ingredients.map(i=>'<li>'+i[0]+' · '+i[1]+' '+i[2]+'</li>').join('')}</ul><h3>Приготовление</h3><ol>${r.steps.map(s=>'<li>'+s+'</li>').join('')}</ol><p class="sub">Количество ингредиентов можно масштабировать под число порций.</p>`;document.getElementById('recipeModal').classList.add('open')}
 function closeRecipe(){document.getElementById('recipeModal').classList.remove('open')}
 function renderShopping(){const el=document.getElementById('shoppingList');if(!shopping.length){el.innerHTML='<div class="empty">Пока нет недостающих продуктов. Сначала составь меню.</div>';return}el.innerHTML=shopping.map((x,i)=>`<label class="shoppingrow ${x.checked?'done':''}"><input type="checkbox" ${x.checked?'checked':''} onchange="toggleShop(${i},this.checked)"><span style="flex:1">${esc(x.name)}</span><b>${formatQty(x.missing)} ${x.unit}</b></label>`).join('')}
-function toggleShop(i,v){shopping[i].checked=v;localStorage.setItem('mm_shopping',JSON.stringify(shopping));renderShopping()}
+function toggleShop(i,v){shopping[i].checked=v;localStorage.setItem('mm_shopping',JSON.stringify(shopping));renderShopping();scheduleCloudSync()}
 function clearShopping(){shopping=[];save()}
 function formatQty(n){return (Math.round(n*100)/100).toLocaleString('ru-RU')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderAll(){renderInventory();renderPlan();renderShopping();document.getElementById('statProducts').textContent=products.length;document.getElementById('statMeals').textContent=plan.reduce((a,d)=>a+d.meals.length,0);document.getElementById('statShopping').textContent=shopping.filter(x=>!x.checked).length}
-renderRecipes();renderAll();
+renderRecipes();renderAll();initCloud();
 </script></body></html>
