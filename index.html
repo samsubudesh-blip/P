@@ -80,6 +80,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .modal{position:fixed;inset:0;background:#101810a8;backdrop-filter:blur(5px);z-index:20;display:none;align-items:flex-end;justify-content:center;padding:16px}
 .modal.open{display:flex}
 .modalbox{background:#fff;border-radius:26px 26px 16px 16px;max-width:650px;width:100%;max-height:90vh;overflow:auto;padding:22px;box-shadow:0 20px 70px #0003}
+.modalbox{position:relative;transition:transform .22s ease;will-change:transform}.modalbox:before{content:"";display:block;width:42px;height:5px;border-radius:8px;background:#d8dfd7;margin:-8px auto 15px}.modalbox.swiping{transition:none}
 .modalbox img{width:100%;height:220px;object-fit:cover;border-radius:18px}
 .modalbox h2{margin:14px 0 5px;letter-spacing:-.7px}
 .modalbox h3{margin-bottom:6px}
@@ -379,7 +380,33 @@ let cookingRecipeId=null,cookingStep=0;
 function openRecipe(id){const r=allRecipes().find(x=>x.id===id);if(!r)return;cookingRecipeId=id;document.getElementById('modalContent').innerHTML='<button class="btn light small" onclick="closeRecipe()">Закрыть ✕</button><img src="'+esc(r.photo)+'" alt=""><h2>'+esc(r.name)+'</h2><p class="sub">'+esc(r.desc||"")+'</p>'+(r.photoAuthor?'<p class="sub">Фото: '+esc(r.photoAuthor)+' · '+esc(r.photoLicense)+'</p>':'')+'<p><b>'+r.time+' минут</b> · примерно '+r.kcal+' ккал на порцию</p><h3>Ингредиенты на 4 порции</h3><ul>'+r.ingredients.map(i=>'<li>'+esc(i[0])+' · '+(i[1]?formatQty(i[1])+' '+esc(i[2]):'по вкусу')+'</li>').join('')+'</ul><button class="btn" style="width:100%;margin:12px 0" onclick="startCooking()">▶ Начать готовить по шагам</button><h3>Приготовление</h3><ol>'+r.steps.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol><p class="sub">Количество ингредиентов указано на 4 порции.</p>';document.getElementById('recipeModal').classList.add('open')}
 function startCooking(){cookingStep=0;renderCookingStep()}
 function renderCookingStep(){const r=allRecipes().find(x=>x.id===cookingRecipeId);if(!r)return;const total=r.steps.length,done=cookingStep>=total;document.getElementById('modalContent').innerHTML='<div class="cookhead"><button class="btn light small" onclick="openRecipe('+r.id+')">← К рецепту</button><span class="sub">РЕЖИМ ГОТОВКИ</span></div><h2>'+esc(r.name)+'</h2><div class="cookprogress"><div style="width:'+(done?100:Math.round(cookingStep/total*100))+'%"></div></div>'+(done?'<div class="cookdone"><div class="cookcheck">✓</div><h2>Готово!</h2><p>Все шаги выполнены. Приятного аппетита!</p><button class="btn" onclick="openRecipe('+r.id+')">Вернуться к рецепту</button></div>':'<p class="cookcount">ШАГ '+(cookingStep+1)+' ИЗ '+total+'</p><div class="cookstep">'+esc(r.steps[cookingStep])+'</div><div class="cooknav">'+(cookingStep>0?'<button class="btn light" onclick="cookingStep--;renderCookingStep()">← Назад</button>':'<span></span>')+'<button class="btn" onclick="cookingStep++;renderCookingStep()">'+(cookingStep===total-1?'Завершить ✓':'Следующий шаг →')+'</button></div><p class="sub cookhint">Не спеши. Переходи дальше, когда закончишь текущий шаг.</p>')}
-function closeRecipe(){document.getElementById('recipeModal').classList.remove('open')}
+function closeRecipe(){const modal=document.getElementById('recipeModal');const box=document.getElementById('modalContent');modal.classList.remove('open');box.style.transform='';box.classList.remove('swiping')}
+(function enableRecipeSwipe(){
+ const modal=document.getElementById('recipeModal'),box=document.getElementById('modalContent');
+ let startY=0,lastY=0,startAt=0,tracking=false;
+ box.addEventListener('touchstart',e=>{
+  if(!modal.classList.contains('open')||e.touches.length!==1)return;
+  if(box.scrollTop>0)return;
+  startY=e.touches[0].clientY;lastY=startY;startAt=Date.now();tracking=true;box.classList.add('swiping');
+ },{passive:true});
+ box.addEventListener('touchmove',e=>{
+  if(!tracking||e.touches.length!==1)return;
+  lastY=e.touches[0].clientY;
+  const delta=lastY-startY;
+  if(delta>0&&box.scrollTop<=0){e.preventDefault();box.style.transform='translateY('+Math.min(delta,260)+'px)'}
+  else if(delta<0){tracking=false;box.style.transform='';box.classList.remove('swiping')}
+ },{passive:false});
+ function finish(){
+  if(!tracking)return;
+  tracking=false;
+  const distance=lastY-startY,elapsed=Date.now()-startAt,fast=distance>65&&elapsed<250;
+  box.classList.remove('swiping');
+  if(distance>115||fast){closeRecipe()}
+  else box.style.transform='';
+ }
+ box.addEventListener('touchend',finish,{passive:true});
+ box.addEventListener('touchcancel',()=>{tracking=false;box.style.transform='';box.classList.remove('swiping')},{passive:true});
+})();
 function renderShopping(){const el=document.getElementById('shoppingList');if(!shopping.length){el.innerHTML='<div class="empty">Пока нет недостающих продуктов. Сначала составь меню.</div>';return}el.innerHTML=shopping.map((x,i)=>`<label class="shoppingrow ${x.checked?'done':''}"><input type="checkbox" ${x.checked?'checked':''} onchange="toggleShop(${i},this.checked)"><span style="flex:1">${esc(x.name)}</span><b>${formatQty(x.missing)} ${x.unit}</b></label>`).join('')}
 function toggleShop(i,v){shopping[i].checked=v;localStorage.setItem('mm_shopping',JSON.stringify(shopping));renderShopping();scheduleCloudSync()}
 function clearShopping(){shopping=[];save()}
