@@ -61,7 +61,7 @@ async function loadEncyclopedia(){
  if(encyclopediaLoading)return;
  if(encyclopediaLoaded){renderEncyclopedia();return}
  encyclopediaLoading=true;const status=document.getElementById("encyStatus");if(status)status.textContent="Загружаю 501 рецепт из открытой базы…";
- try{const response=await fetch("https://theunitools.com/data/unitools-recipes-v1.json");if(!response.ok)throw new Error("HTTP "+response.status);const data=await response.json();externalRecipes=(data.recipes||[]).map(normalizeExternalRecipe);localStorage.setItem("mm_external_recipes",JSON.stringify(externalRecipes));encyclopediaLoaded=true;if(status)status.textContent="Загружено "+externalRecipes.length+" рецептов.";renderEncyclopedia()}
+ try{const response=await fetch("https://raw.githubusercontent.com/farcrak/unitools-recipes/main/unitools-recipes-v1.json");if(!response.ok)throw new Error("HTTP "+response.status);const data=await response.json();externalRecipes=(data.recipes||[]).map(normalizeExternalRecipe);localStorage.setItem("mm_external_recipes",JSON.stringify(externalRecipes));encyclopediaLoaded=true;if(status)status.textContent="Загружено "+externalRecipes.length+" рецептов.";renderEncyclopedia()}
  catch(error){if(status)status.textContent=externalRecipes.length?"Не удалось обновить базу. Показываю сохранённые рецепты ("+externalRecipes.length+").":"Не удалось загрузить базу. Проверь интернет и открой вкладку ещё раз.";renderEncyclopedia()}
  finally{encyclopediaLoading=false}
 }
