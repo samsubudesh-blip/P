@@ -47,17 +47,24 @@ function initCloud(){
  try{sbClient=window.supabase.createClient(c.url,c.key);sbClient.auth.getSession().then(({data})=>{if(data.session){sbUser=data.session.user;loadCloud()}else setCloudStatus('Настройки сохранены. Введи e-mail и нажми «Подключить / войти».')})}catch(e){setCloudStatus('Не удалось запустить Supabase: '+e.message)}
 }
 let cloudAuthListenerAttached=false;
+function attachCloudAuthListener(){
+ if(!sbClient||cloudAuthListenerAttached)return;
+ sbClient.auth.onAuthStateChange((event,session)=>{
+  if(session?.user){sbUser=session.user;loadCloud().catch(e=>setCloudStatus('Ошибка загрузки данных: '+(e?.message||String(e))))}
+ });
+ cloudAuthListenerAttached=true;
+}
 async function connectCloud(){
  const button=document.querySelector('#cloudPanel button[onclick="connectCloud()"]');
  const url=document.getElementById('sbUrl').value.trim().replace(/\/$/,'');
  const key=document.getElementById('sbKey').value.trim();
  const email=document.getElementById('sbEmail').value.trim();
  if(!url||!key||!email){setCloudStatus('Заполни все три поля: Project URL, публичный ключ и e-mail.');return}
- if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){setCloudStatus('Неверный формат Project URL. Он должен выглядеть как https://xxxxx.supabase.co');return}
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){setCloudStatus('Неверный формат Project URL. Используй адрес вида https://xxxxx.supabase.co');return}
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setCloudStatus('Проверь адрес электронной почты.');return}
- if(!window.supabase||typeof window.supabase.createClient!=='function'){setCloudStatus('Не загрузилась библиотека Supabase. Обнови страницу и повтори попытку.');return}
- if(button){button.disabled=true;button.textContent='Подключаюсь…'}
- setCloudStatus('Проверяю настройки и подключаюсь к Supabase…');
+ if(!window.supabase||typeof window.supabase.createClient!=='function'){setCloudStatus('Библиотека Supabase не загрузилась. Обнови страницу и повтори попытку.');return}
+ if(button){button.disabled=true;button.textContent='Проверяю подключение…'}
+ setCloudStatus('Сохраняю настройки и проверяю, выполнен ли вход…');
  try{
   localStorage.setItem('mm_sb_url',url);
   localStorage.setItem('mm_sb_key',key);
@@ -66,22 +73,22 @@ async function connectCloud(){
    sbClient=window.supabase.createClient(url,key);
    cloudAuthListenerAttached=false;
   }
-  if(!cloudAuthListenerAttached){
-   sbClient.auth.onAuthStateChange((event,session)=>{
-    if(session?.user){sbUser=session.user;loadCloud().catch(e=>setCloudStatus('Ошибка загрузки данных: '+(e?.message||String(e))))}
-   });
-   cloudAuthListenerAttached=true;
+  attachCloudAuthListener();
+  const {data:sessionData,error:sessionError}=await sbClient.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(sessionData?.session?.user){
+   sbUser=sessionData.session.user;
+   setCloudStatus('Вход уже выполнен. Загружаю данные из облака…');
+   await loadCloud();
+   return;
   }
   setCloudStatus('Отправляю письмо со ссылкой для входа на '+email+'…');
-  const {data,error}=await sbClient.auth.signInWithOtp({
-   email,
-   options:{emailRedirectTo:location.origin,shouldCreateUser:true}
-  });
+  const {error}=await sbClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin,shouldCreateUser:true}});
   if(error)throw error;
-  setCloudStatus('Письмо отправлено на '+email+'. Открой его и нажми ссылку для входа. После возврата в приложение синхронизация включится автоматически.');
+  setCloudStatus('Письмо отправлено на '+email+'. Открой ссылку именно в этом же браузере, где открыто приложение.');
  }catch(e){
   console.error('Supabase connection error:',e);
-  setCloudStatus('Не удалось подключиться: '+(e?.message||String(e))+' Проверь Project URL, публичный ключ и настройки Redirect URLs в Supabase.');
+  setCloudStatus('Не удалось подключиться: '+(e?.message||String(e))+' Проверь URL, публичный ключ и настройки Redirect URLs.');
  }finally{
   if(button){button.disabled=false;button.textContent='Подключить / войти'}
  }
