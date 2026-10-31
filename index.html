@@ -23,8 +23,8 @@
 <section id="shopping" class="view hidden"><div class="sectionhead"><div><h2>Список покупок</h2><p class="sub">Ингредиенты, которых не хватает для меню.</p></div><button class="btn light small" onclick="clearShopping()">Очистить</button></div><div class="panel"><div id="shoppingList"><div class="empty">Список появится после составления меню.</div></div></div></section>
 <div class="footer">Моё меню · версия 0.2 · локальное и облачное хранение</div></main>
 <div class="modal" id="recipeModal" onclick="if(event.target===this)closeRecipe()"><div class="modalbox" id="modalContent"></div></div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const recipes=[
@@ -171,7 +171,7 @@ function renderInventory(){const el=document.getElementById('inventoryList');el.
 document.getElementById('productForm').addEventListener('submit',e=>{e.preventDefault();products.push({id:Date.now(),name:document.getElementById('pName').value.trim(),qty:+document.getElementById('pQty').value,unit:document.getElementById('pUnit').value,expiry:document.getElementById('pExpiry').value});e.target.reset();save()});
 function removeProduct(id){products=products.filter(p=>p.id!==id);save()}
 let recognitionModelPromise=null,photoDetections=[];
-const foodLabels={apple:"Яблоко",banana:"Банан",orange:"Апельсин",broccoli:"Брокколи",carrot:"Морковь",sandwich:"Бутерброд",hotdog:"Хот-дог",pizza:"Пицца",donut:"Пончик",cake:"Торт"};
+const foodLabels={apple:"Яблоко",banana:"Банан",orange:"Апельсин",broccoli:"Брокколи",carrot:"Морковь",sandwich:"Бутерброд","hot dog":"Хот-дог",pizza:"Пицца",donut:"Пончик",cake:"Торт"};
 async function getRecognitionModel(){if(!window.cocoSsd||!window.tf)throw new Error("Модель распознавания не загрузилась");if(!recognitionModelPromise)recognitionModelPromise=window.cocoSsd.load({base:"lite_mobilenet_v2"});return recognitionModelPromise}
 async function recognizePhoto(e){
  const file=e.target.files&&e.target.files[0];if(!file)return;
