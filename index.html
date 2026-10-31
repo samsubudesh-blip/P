@@ -46,18 +46,45 @@ function initCloud(){
  if(!c.url||!c.key||!window.supabase){setCloudStatus('Облако не подключено. Введи URL и публичный ключ Supabase, затем e-mail.');return}
  try{sbClient=window.supabase.createClient(c.url,c.key);sbClient.auth.getSession().then(({data})=>{if(data.session){sbUser=data.session.user;loadCloud()}else setCloudStatus('Настройки сохранены. Введи e-mail и нажми «Подключить / войти».')})}catch(e){setCloudStatus('Не удалось запустить Supabase: '+e.message)}
 }
+let cloudAuthListenerAttached=false;
 async function connectCloud(){
- const url=document.getElementById('sbUrl').value.trim(),key=document.getElementById('sbKey').value.trim(),email=document.getElementById('sbEmail').value.trim();
- if(!url||!key||!email){setCloudStatus('Заполни URL, публичный ключ и e-mail.');return}
- if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){setCloudStatus('Проверь URL проекта Supabase.');return}
- localStorage.setItem('mm_sb_url',url);localStorage.setItem('mm_sb_key',key);localStorage.setItem('mm_sb_email',email);
- if(!window.supabase){setCloudStatus('Библиотека Supabase не загрузилась. Проверь подключение к интернету.');return}
- sbClient=window.supabase.createClient(url,key);
- setCloudStatus('Отправляю ссылку для входа на '+email+'…');
- const {error}=await sbClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin}});
- if(error){setCloudStatus('Ошибка входа: '+error.message);return}
- setCloudStatus('Письмо отправлено. Открой ссылку из письма на этом устройстве. На остальных устройствах войди с тем же e-mail.');
- sbClient.auth.onAuthStateChange((event,session)=>{if(session?.user){sbUser=session.user;loadCloud()}});
+ const button=document.querySelector('#cloudPanel button[onclick="connectCloud()"]');
+ const url=document.getElementById('sbUrl').value.trim().replace(/\/$/,'');
+ const key=document.getElementById('sbKey').value.trim();
+ const email=document.getElementById('sbEmail').value.trim();
+ if(!url||!key||!email){setCloudStatus('Заполни все три поля: Project URL, публичный ключ и e-mail.');return}
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){setCloudStatus('Неверный формат Project URL. Он должен выглядеть как https://xxxxx.supabase.co');return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setCloudStatus('Проверь адрес электронной почты.');return}
+ if(!window.supabase||typeof window.supabase.createClient!=='function'){setCloudStatus('Не загрузилась библиотека Supabase. Обнови страницу и повтори попытку.');return}
+ if(button){button.disabled=true;button.textContent='Подключаюсь…'}
+ setCloudStatus('Проверяю настройки и подключаюсь к Supabase…');
+ try{
+  localStorage.setItem('mm_sb_url',url);
+  localStorage.setItem('mm_sb_key',key);
+  localStorage.setItem('mm_sb_email',email);
+  if(!sbClient||cloudConfig().url!==url||cloudConfig().key!==key){
+   sbClient=window.supabase.createClient(url,key);
+   cloudAuthListenerAttached=false;
+  }
+  if(!cloudAuthListenerAttached){
+   sbClient.auth.onAuthStateChange((event,session)=>{
+    if(session?.user){sbUser=session.user;loadCloud().catch(e=>setCloudStatus('Ошибка загрузки данных: '+(e?.message||String(e))))}
+   });
+   cloudAuthListenerAttached=true;
+  }
+  setCloudStatus('Отправляю письмо со ссылкой для входа на '+email+'…');
+  const {data,error}=await sbClient.auth.signInWithOtp({
+   email,
+   options:{emailRedirectTo:location.origin,shouldCreateUser:true}
+  });
+  if(error)throw error;
+  setCloudStatus('Письмо отправлено на '+email+'. Открой его и нажми ссылку для входа. После возврата в приложение синхронизация включится автоматически.');
+ }catch(e){
+  console.error('Supabase connection error:',e);
+  setCloudStatus('Не удалось подключиться: '+(e?.message||String(e))+' Проверь Project URL, публичный ключ и настройки Redirect URLs в Supabase.');
+ }finally{
+  if(button){button.disabled=false;button.textContent='Подключить / войти'}
+ }
 }
 async function loadCloud(){
  if(!sbClient||!sbUser)return;
