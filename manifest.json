@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "Книга рецептов",
+  "short_name": "Рецепты",
+  "description": "Домашняя книга рецептов и учёт продуктов",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f6f2",
+  "theme_color": "#f7f7f2",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
