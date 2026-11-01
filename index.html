@@ -318,7 +318,7 @@ function startVoiceSearch(){
  if(voiceRecognition){try{voiceRecognition.stop();}catch(e){}return}
  try{
   const recognition=new SpeechRecognition();
-  voiceRecognition=recognition;voiceSearchLatest="";recognition.lang="ru-RU";recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
+  voiceRecognition=recognition;voiceSearchLatest="";if(input){input.value="";renderEncyclopedia();}recognition.lang="ru-RU";recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
   if(status)status.textContent="Слушаю… Назови блюдо или ингредиент.";
   button?.classList.add("listening");if(button)button.innerHTML="⏹ <span>Остановить</span>";
   recognition.onresult=event=>{
