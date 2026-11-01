@@ -334,8 +334,11 @@ function startVoiceSearch(){
    input.value=transcript;
    if(voiceSearchTimer)clearTimeout(voiceSearchTimer);
    if(isFinal){
+    if(voiceSearchTimer){clearTimeout(voiceSearchTimer);voiceSearchTimer=null;}
     renderEncyclopedia();
     if(status)status.textContent="Ищу: «"+transcript+"»";
+    // Explicitly stop the microphone as soon as the browser returns a final phrase.
+    try{recognition.stop();}catch(e){}
    }else{
     if(status)status.textContent="Распознаю: «"+transcript+"»";
     voiceSearchTimer=setTimeout(()=>{
