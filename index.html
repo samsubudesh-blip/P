@@ -305,6 +305,8 @@ function bindRecipeImages(root){
  });
 }
 let voiceRecognition=null;
+let voiceSearchTimer=null;
+let voiceSearchLatest="";
 function startVoiceSearch(){
  const status=document.getElementById("encyVoiceStatus"),button=document.getElementById("voiceSearchBtn"),input=document.getElementById("encySearch");
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -316,12 +318,30 @@ function startVoiceSearch(){
  if(voiceRecognition){voiceRecognition.stop();return}
  try{
   const recognition=new SpeechRecognition();
-  voiceRecognition=recognition;recognition.lang="ru-RU";recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;
+  voiceRecognition=recognition;voiceSearchLatest="";recognition.lang="ru-RU";recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
   if(status)status.textContent="Слушаю… Назови блюдо или ингредиент.";
   button?.classList.add("listening");if(button)button.innerHTML="⏹ <span>Остановить</span>";
   recognition.onresult=event=>{
-   const transcript=event.results?.[0]?.[0]?.transcript?.trim();
-   if(transcript&&input){input.value=transcript;renderEncyclopedia();if(status)status.textContent="Ищу: «"+transcript+"»";}
+   let transcript="",isFinal=false;
+   for(let i=0;i<event.results.length;i++){
+    const part=event.results[i]?.[0]?.transcript?.trim();
+    if(part)transcript+=(transcript?" ":"")+part;
+    if(event.results[i]?.isFinal)isFinal=true;
+   }
+   transcript=transcript.trim();
+   if(!transcript||!input)return;
+   voiceSearchLatest=transcript;
+   input.value=transcript;
+   if(voiceSearchTimer)clearTimeout(voiceSearchTimer);
+   if(isFinal){
+    renderEncyclopedia();
+    if(status)status.textContent="Ищу: «"+transcript+"»";
+   }else{
+    if(status)status.textContent="Распознаю: «"+transcript+"»";
+    voiceSearchTimer=setTimeout(()=>{
+     if(voiceSearchLatest===transcript)renderEncyclopedia();
+    },350);
+   }
   };
   recognition.onerror=event=>{
    const messages={
@@ -340,6 +360,12 @@ function startVoiceSearch(){
    }
   };
   recognition.onend=()=>{
+   if(voiceSearchTimer){clearTimeout(voiceSearchTimer);voiceSearchTimer=null;}
+   if(voiceSearchLatest&&input){
+    input.value=voiceSearchLatest;
+    renderEncyclopedia();
+    if(status)status.textContent="Ищу: «"+voiceSearchLatest+"»";
+   }
    voiceRecognition=null;button?.classList.remove("listening");if(button)button.innerHTML="🎙️ <span>Голосом</span>";
   };
   recognition.start();
