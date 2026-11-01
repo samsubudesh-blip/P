@@ -324,9 +324,18 @@ function startVoiceSearch(){
    if(transcript&&input){input.value=transcript;renderEncyclopedia();if(status)status.textContent="Ищу: «"+transcript+"»";}
   };
   recognition.onerror=event=>{
-   const messages={"not-allowed":"Нет доступа к микрофону. Разреши его для сайта в настройках Safari.","service-not-allowed":"Голосовой сервис браузера недоступен.","no-speech":"Речь не распознана. Попробуй ещё раз.",network:"Не удалось подключиться к сервису распознавания."};
-   if(status)status.textContent=messages[event.error]||"Не удалось распознать речь. Попробуй ещё раз.";
-   if(event.error==="not-allowed"||event.error==="service-not-allowed"){
+   const messages={
+    "not-allowed":"Браузер запретил доступ к микрофону.",
+    "service-not-allowed":"Системный сервис распознавания речи недоступен.",
+    "no-speech":"Сервис не услышал речь. Проверь, что микрофон не закрыт, и говори после появления надписи «Слушаю…».",
+    "network":"Не удалось связаться с сервером распознавания речи.",
+    "audio-capture":"Не удалось получить звук с микрофона.",
+    "language-not-supported":"Сервис не поддерживает выбранный язык распознавания.",
+    "aborted":"Распознавание было прервано."
+   };
+   const reason=event.error||"unknown";
+   if(status)status.textContent=(messages[reason]||"Ошибка распознавания речи.")+" Код: "+reason+".";
+   if(reason==="not-allowed"||reason==="service-not-allowed"||reason==="audio-capture"){
     if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});}
    }
   };
