@@ -309,7 +309,8 @@ function startVoiceSearch(){
  const status=document.getElementById("encyVoiceStatus"),button=document.getElementById("voiceSearchBtn"),input=document.getElementById("encySearch");
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!SpeechRecognition){
-  if(status)status.textContent="Голосовой поиск не поддерживается этим браузером. На iPhone можно нажать микрофон на экранной клавиатуре и надиктовать запрос.";
+  if(status)status.textContent="Safari не предоставляет сайту распознавание речи. Открыл поиск: нажми микрофон на клавиатуре iPhone и продиктуй запрос.";
+  if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});}
   return;
  }
  if(voiceRecognition){voiceRecognition.stop();return}
@@ -317,14 +318,17 @@ function startVoiceSearch(){
   const recognition=new SpeechRecognition();
   voiceRecognition=recognition;recognition.lang="ru-RU";recognition.continuous=false;recognition.interimResults=false;recognition.maxAlternatives=1;
   if(status)status.textContent="Слушаю… Назови блюдо или ингредиент.";
-  button?.classList.add("listening");if(button){button.innerHTML="⏹ <span>Остановить</span>";}
+  button?.classList.add("listening");if(button)button.innerHTML="⏹ <span>Остановить</span>";
   recognition.onresult=event=>{
    const transcript=event.results?.[0]?.[0]?.transcript?.trim();
    if(transcript&&input){input.value=transcript;renderEncyclopedia();if(status)status.textContent="Ищу: «"+transcript+"»";}
   };
   recognition.onerror=event=>{
-   const messages={not-allowed:"Нет доступа к микрофону. Разреши его для сайта в настройках браузера.","service-not-allowed":"Голосовой сервис недоступен.", "no-speech":"Речь не распознана. Попробуй ещё раз.", network:"Не удалось подключиться к сервису распознавания."};
+   const messages={"not-allowed":"Нет доступа к микрофону. Разреши его для сайта в настройках Safari.","service-not-allowed":"Голосовой сервис браузера недоступен.","no-speech":"Речь не распознана. Попробуй ещё раз.",network:"Не удалось подключиться к сервису распознавания."};
    if(status)status.textContent=messages[event.error]||"Не удалось распознать речь. Попробуй ещё раз.";
+   if(event.error==="not-allowed"||event.error==="service-not-allowed"){
+    if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});}
+   }
   };
   recognition.onend=()=>{
    voiceRecognition=null;button?.classList.remove("listening");if(button)button.innerHTML="🎙️ <span>Голосом</span>";
@@ -332,7 +336,8 @@ function startVoiceSearch(){
   recognition.start();
  }catch(error){
   voiceRecognition=null;button?.classList.remove("listening");if(button)button.innerHTML="🎙️ <span>Голосом</span>";
-  if(status)status.textContent="Не удалось запустить микрофон. Проверь разрешение на доступ к нему.";
+  if(status)status.textContent="Браузер не смог запустить распознавание. Открыл поле поиска: используй микрофон на клавиатуре iPhone.";
+  if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});}
  }
 }
 function renderEncyclopedia(){
