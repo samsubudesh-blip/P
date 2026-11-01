@@ -315,7 +315,7 @@ function startVoiceSearch(){
   if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});}
   return;
  }
- if(voiceRecognition){try{voiceRecognition.abort();}catch(e){}return}
+ if(voiceRecognition){try{voiceRecognition.stop();}catch(e){}return}
  try{
   const recognition=new SpeechRecognition();
   voiceRecognition=recognition;voiceSearchLatest="";recognition.lang="ru-RU";recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
@@ -338,7 +338,7 @@ function startVoiceSearch(){
     renderEncyclopedia();
     if(status)status.textContent="Ищу: «"+transcript+"»";
     // Explicitly stop the microphone as soon as the browser returns a final phrase.
-    try{recognition.abort();}catch(e){try{recognition.stop();}catch(_){}}
+    try{recognition.stop();}catch(e){}
    }else{
     if(status)status.textContent="Распознаю: «"+transcript+"»";
     voiceSearchTimer=setTimeout(()=>{
@@ -358,7 +358,6 @@ function startVoiceSearch(){
    };
    const reason=event.error||"unknown";
    if(status)status.textContent=(messages[reason]||"Ошибка распознавания речи.")+" Код: "+reason+".";
-   try{recognition.abort();}catch(e){}
    if(reason==="not-allowed"||reason==="service-not-allowed"||reason==="audio-capture"){
     if(input){input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});}
    }
